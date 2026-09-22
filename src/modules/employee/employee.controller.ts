@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  Req,
-  UseGuards,
-} from '@nestjs/common';
+import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 
 import { EmployeeService } from './employee.service.js';
 import { AuthJwtGuard } from '../auth/auth.jwt.guard.js';
@@ -20,8 +15,8 @@ export class EmployeeController {
   @Get('dashboard')
   @Roles(2)
   getDashboard(@Req() request: any) {
-    const userId = Number(request.user.userId);
 
+    const userId = Number(request.user.userId);
     return this.employeeService.getDashboard(userId);
   }
 }
