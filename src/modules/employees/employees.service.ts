@@ -97,7 +97,7 @@ export class EmployeesService {
 
   async findAll(query: EmployeeQueryDto) {
 
-    const { search, dept_id, is_active, page = 1, limit = 10 } = query;
+    const { search, dept_id, is_active, page = 1, limit = 5 } = query;
     const skip = (page - 1) * limit;
 
     // Find employee role
