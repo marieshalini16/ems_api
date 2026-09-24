@@ -5,10 +5,17 @@ import { EmployeesService } from './employees.service.js';
 import { AuthModule } from '../auth/auth.module.js';
 
 @Module({
-  imports: [AuthModule],
-  controllers: [EmployeesController],
-  providers: [EmployeesService],
-  exports: [EmployeesService],
+  imports: [AuthModule,
+  ],
+  
+  controllers: [EmployeesController,
+  ],
+ 
+  providers: [EmployeesService,
+  ],
+ 
+  exports: [EmployeesService,
+  ],
 })
 
 export class EmployeesModule {}

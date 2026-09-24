@@ -1,8 +1,9 @@
 import { ConflictException, Injectable, UnauthorizedException} from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
+import * as bcrypt from 'bcrypt';
+
 import { PrismaService } from '../prisma/prisma.service.js';
 import { LoginDto } from './dto/login.dto.js';
-import * as bcrypt from 'bcrypt';
-import { JwtService } from '@nestjs/jwt';
 import { RegisterDto } from './dto/register.dto.js';
 
 @Injectable()
@@ -10,7 +11,7 @@ export class AuthService {
   constructor(private readonly prisma: PrismaService,
               private readonly jwtService : JwtService) {}
      
-/* Login */
+// Login 
 
   async login(loginDto: LoginDto) {
 
@@ -45,7 +46,7 @@ export class AuthService {
 
 }
 
-/* Register */
+// Register
 
 async register(registerDto: RegisterDto) {
     const {fullname, email, phone, password} = registerDto;
@@ -62,8 +63,7 @@ async register(registerDto: RegisterDto) {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user =
-      await this.prisma.users.create({
+    const user = await this.prisma.users.create({
         data: {
           full_name: fullname,
           email,

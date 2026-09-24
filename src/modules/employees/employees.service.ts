@@ -371,7 +371,6 @@ export class EmployeesService {
     }
     });
 
-
     // Update
 
     const updatedEmployee = await this.prisma.users.update({

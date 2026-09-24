@@ -6,6 +6,7 @@ export class EmployeeService {
   constructor( private readonly prisma: PrismaService ) {}
 
   async getDashboard(userId: number) {
+    
     const statuses = await this.prisma.status.findMany({
       where: {
         is_active: 1,
@@ -27,8 +28,7 @@ export class EmployeeService {
       },
     });
 
-    const completedTasks = completedStatus
-      ? await this.prisma.tasks.count({
+    const completedTasks = completedStatus ? await this.prisma.tasks.count({
           where: {
             assign_to: userId,
             status_id: completedStatus.id,

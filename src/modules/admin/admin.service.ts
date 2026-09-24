@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
@@ -6,9 +7,11 @@ export class AdminService {
   constructor(private readonly prisma: PrismaService) {}
 
   async getDashboard() {
-    const [totalEmployees, totalDepartments, totalTasks, activeEmployees] = await Promise.all([
-      
-        // Total employees
+
+    const [totalEmployees, totalDepartments, totalTasks, activeEmployees] = 
+    await Promise.all([
+
+      // Total employees
       this.prisma.users.count({ }),
 
       // Total departments
@@ -69,8 +72,7 @@ export class AdminService {
         status.status_name.toLowerCase() === 'pending',
     );
 
-    const pendingTasks = pendingStatus
-      ? await this.prisma.tasks.count({
+    const pendingTasks = pendingStatus ? await this.prisma.tasks.count({
           where: {
             status_id: pendingStatus.id,
             is_active: 1,
@@ -84,8 +86,7 @@ export class AdminService {
         status.status_name.toLowerCase() === 'completed',
     );
 
-    const completedTasks = completedStatus
-      ? await this.prisma.tasks.count({
+    const completedTasks = completedStatus ? await this.prisma.tasks.count({
           where: {
             status_id: completedStatus.id,
             is_active: 1,
@@ -94,9 +95,7 @@ export class AdminService {
       : 0;
 
       // Recently created employees
-
-      const recentEmployees =
-      await this.prisma.users.findMany({
+      const recentEmployees = await this.prisma.users.findMany({
         where: {
           is_active: 1,
         },
@@ -119,8 +118,7 @@ export class AdminService {
       )];
 
     // Get department names
-    const departments =
-      await this.prisma.department.findMany({
+    const departments = await this.prisma.department.findMany({
         where: {
           id: {
             in: departmentIds,
@@ -133,8 +131,7 @@ export class AdminService {
       });
 
     // Add department name to each employee
-    const recentEmployeesWithDepartment =
-      recentEmployees.map((employee) => {
+    const recentEmployeesWithDepartment = recentEmployees.map((employee) => {
         const employeeDepartment = departments.find((department) =>
             department.id === employee.dept_id,
         );

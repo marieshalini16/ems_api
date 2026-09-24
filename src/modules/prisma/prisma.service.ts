@@ -8,12 +8,14 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
 {
   constructor(configService: ConfigService) {
     const adapter = new PrismaMariaDb({
+
       host: configService.getOrThrow<string>('DB_HOST'),
       port: Number(configService.getOrThrow<string>('DB_PORT')),
       user: configService.getOrThrow<string>('DB_USER'),
       password: configService.getOrThrow<string>('DB_PASSWORD'),
       database: configService.getOrThrow<string>('DB_NAME'),
       connectionLimit: 5,
+      
     });
 
     super({ adapter });

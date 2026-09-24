@@ -1,11 +1,6 @@
-import {
-  ConflictException,
-  Injectable,
-  NotFoundException,
-} from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service.js';
-
 import { CreateDepartmentDto } from './dto/create-department.dto.js';
 import { UpdateDepartmentDto } from './dto/update-department.dto.js';
 import { UpdateDepartmentStatusDto } from './dto/update-department-status.dto.js';
@@ -13,9 +8,7 @@ import { DepartmentQueryDto } from './dto/department-query.dto.js'
 
 @Injectable()
 export class DepartmentsService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor( private readonly prisma: PrismaService ) {}
 
   // Create Department
 

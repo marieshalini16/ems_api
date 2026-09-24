@@ -1,4 +1,4 @@
-import { IsIn, IsInt } from 'class-validator';
+import { IsIn, IsInt } from "class-validator";
 
 export class UpdateDepartmentStatusDto {
   @IsInt()
