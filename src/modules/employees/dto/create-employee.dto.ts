@@ -3,19 +3,19 @@ import {IsDateString, IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, Matches,
 export class CreateEmployeeDto {
   @IsString()
   @IsNotEmpty()
-  @MinLength(2)
+  @MinLength(2, { message: 'Full name must be at least 2 characters' })
   full_name: string;
 
   @IsString()
   @IsNotEmpty()
   user_name: string;
 
-  @IsEmail()
+  @IsEmail({}, { message: 'Please enter a valid email address' })
   email: string;
 
   @IsOptional()
   @IsString()
-  @Matches(/^[0-9]{10}$/)
+  @Matches(/^[0-9]{10}$/, { message: 'Phone must be exactly 10 digits' })
   phone?: string;
 
   @IsString()

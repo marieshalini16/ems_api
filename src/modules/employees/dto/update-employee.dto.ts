@@ -1,9 +1,10 @@
-import { IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsInt, IsNotEmpty, IsOptional, IsString, Matches, MinLength } from 'class-validator';
 
 export class UpdateEmployeeDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty()
+  @MinLength(2, { message: 'Full name must be at least 2 characters' })
   full_name?: string;
 
   @IsOptional()
@@ -12,11 +13,12 @@ export class UpdateEmployeeDto {
   user_name?: string;
 
   @IsOptional()
-  @IsEmail()
+  @IsEmail({}, { message: 'Please enter a valid email address' })
   email?: string;
 
   @IsOptional()
   @IsString()
+  @Matches(/^[0-9]{10}$/, { message: 'Phone must be exactly 10 digits' })
   phone?: string;
 
   @IsOptional()
