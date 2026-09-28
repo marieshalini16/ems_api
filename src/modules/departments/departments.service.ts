@@ -56,11 +56,7 @@ export class DepartmentsService {
           }
         : {}),
 
-      ...(is_active !== undefined
-        ? {
-            is_active,
-          }
-        : {}),
+      ...(is_active !== undefined ? { is_active, } : {}),
     };
 
     const [departments, total] = await Promise.all([this.prisma.department.findMany({
@@ -77,12 +73,8 @@ export class DepartmentsService {
         }),
       ]);
 
-    // --------------------------------
-    // Employee Counts
-    // --------------------------------
 
-    const employeeCounts =
-      await this.prisma.users.groupBy({
+    const employeeCounts = await this.prisma.users.groupBy({
         by: ['dept_id'],
         where: {
           dept_id: {
@@ -103,8 +95,7 @@ export class DepartmentsService {
       ]),
     );
 
-    const departmentsWithCount =
-      departments.map((department) => ({
+    const departmentsWithCount = departments.map((department) => ({
         ...department,
 
         employee_count:

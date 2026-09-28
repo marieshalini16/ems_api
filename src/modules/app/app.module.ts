@@ -9,6 +9,9 @@ import { AdminModule } from '../admin/admin.module.js';
 import { EmployeeModule } from '../employee/employee.module.js';
 import { EmployeesModule } from '../employees/employees.module.js';
 import { DepartmentsModule } from '../departments/departments.module.js';
+import { TasksModule } from '../tasks/tasks.module.js';
+import { ProfileModule } from '../profile/profile.module.js';
+import { MytaskModule } from '../mytask/mytask.module.js';
 
 @Module({
   imports: [
@@ -21,6 +24,9 @@ import { DepartmentsModule } from '../departments/departments.module.js';
     EmployeeModule,
     EmployeesModule,
     DepartmentsModule,
+    TasksModule,
+    ProfileModule,
+    MytaskModule
   ],
   controllers: [AppController],
   providers: [AppService]

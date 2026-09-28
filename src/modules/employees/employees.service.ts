@@ -1,7 +1,7 @@
 import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
 import * as bcrypt from 'bcrypt';
 
+import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateEmployeeDto } from './dto/create-employee.dto.js';
 import { UpdateEmployeeDto } from './dto/update-employee.dto.js';
 import { EmployeeQueryDto } from './dto/employee-query.dto.js';
@@ -229,9 +229,7 @@ export class EmployeesService {
         total,
         page,
         limit,
-        totalPages: Math.ceil(
-          total / limit,
-        ),
+        totalPages: Math.ceil(total / limit),
       },
     };
   }
