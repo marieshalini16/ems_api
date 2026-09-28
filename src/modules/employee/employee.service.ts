@@ -37,14 +37,7 @@ export class EmployeeService {
         })
       : 0;
 
-    const announcements = await this.prisma.announcement.count({
-      where: {
-        is_active: 1,
-        publish_date: {
-          lte: new Date(),
-        },
-      },
-    });
+    
 
     const tasks = await this.prisma.tasks.findMany({
       where: {
@@ -124,7 +117,6 @@ export class EmployeeService {
     return {
       myTasks,
       completedTasks,
-      announcements,
       tasks: taskList,
     };
   }

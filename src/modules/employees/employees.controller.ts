@@ -29,19 +29,19 @@ export class EmployeesController {
     return this.employeesService.findAll(query);
   }
 
-  //Get one employee by id
+  //Get employee by id
   @Get(':id')
   findOne( @Param('id', ParseIntPipe) id: number ) {
     return this.employeesService.findOne(id);
   }
 
-  //Update a employee data
+  //Update employee data
   @Patch(':id')
   update(@Param('id', ParseIntPipe) id: number, @Body() dto: UpdateEmployeeDto ) {
     return this.employeesService.update(id,dto);
   }
  
-  //Update the status of employee
+  //Update the status
   @Patch(':id/status')
   updateStatus( @Param('id', ParseIntPipe) id: number, @Body() dto: UpdateEmployeeStatusDto) {
     return this.employeesService.updateStatus( id,dto.is_active);
