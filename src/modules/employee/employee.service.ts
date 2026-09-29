@@ -1,12 +1,15 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger, InternalServerErrorException, ConflictException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
 export class EmployeeService {
+  private readonly logger = new Logger(EmployeeService.name);
+
   constructor( private readonly prisma: PrismaService ) {}
 
   async getDashboard(userId: number) {
-    
+    try{
+   
     const statuses = await this.prisma.status.findMany({
       where: {
         is_active: 1,
@@ -114,10 +117,23 @@ export class EmployeeService {
       };
     });
 
+    this.logger.log('Employee dashboard data fetched successfully');
+
     return {
       myTasks,
       completedTasks,
       tasks: taskList,
     };
+
+    }
+
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+            throw error;
+      }
+    this.logger.error( 'Failed to fetch employee dashboard data', error instanceof Error ? error.stack : String(error));
+    throw new InternalServerErrorException( 'Failed to fetch dashboard data', );
+  }
+
   }
 }

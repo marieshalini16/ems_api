@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, UnauthorizedException} from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException, Logger, InternalServerErrorException, NotFoundException} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 
@@ -8,12 +8,16 @@ import { RegisterDto } from './dto/register.dto.js';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+  
   constructor(private readonly prisma: PrismaService,
               private readonly jwtService : JwtService) {}
      
 // Login 
 
   async login(loginDto: LoginDto) {
+
+  try{
 
   const user = await this.prisma.users.findUnique({
     where: {
@@ -37,18 +41,30 @@ export class AuthService {
       role_id: user.role_id,
     });
 
+  this.logger.log('Login successfully');
+
    return {
       message: 'Login successful',
       access_token: token,
       userId: user.id,
       role_id: user.role_id,
     };
+  }
 
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( 'Failed to login', error instanceof Error ? error.stack : String(error) );
+    throw new InternalServerErrorException('Failed to login');
+  }
 }
 
 // Register
 
 async register(registerDto: RegisterDto) {
+  try{
     const {fullname, email, phone, password} = registerDto;
 
     const existingEmail = await this.prisma.users.findUnique({
@@ -75,6 +91,8 @@ async register(registerDto: RegisterDto) {
         },
       });
 
+  this.logger.log('Register successfully');
+
     return {
       message: 'Registration successful',
       user: {
@@ -85,7 +103,14 @@ async register(registerDto: RegisterDto) {
         role_id: user.role_id,
       },
     };
-
   }
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
 
+    this.logger.error( 'Failed to register', error instanceof Error ? error.stack : String(error) );
+    throw new InternalServerErrorException('Failed to register');
+  }
+  }
 }

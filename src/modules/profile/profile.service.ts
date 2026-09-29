@@ -1,14 +1,17 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger, InternalServerErrorException, ConflictException } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
 
 @Injectable()
 export class ProfileService {
+  private readonly logger = new Logger(ProfileService.name);
   constructor(private readonly prisma: PrismaService) {}
 
   // Get profile
   async getProfile(userId: number) {
+
+    try{
     
     const user = await this.prisma.users.findUnique({
       where: {
@@ -42,6 +45,8 @@ export class ProfileService {
       },
     });
 
+    this.logger.log('Fetched profile data successfully');
+
     return {
       id: user.id,
       email: user.email,
@@ -54,8 +59,20 @@ export class ProfileService {
     };
   }
 
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+               throw error;
+        }
+
+    this.logger.error( 'Failed to fetch profile data', error instanceof Error ? error.stack : String(error));
+    throw new InternalServerErrorException( 'Failed to fetch profile data', );
+  }
+  }
+
   // Update profile
   async updateProfile( userId: number, dto: UpdateProfileDto) {
+
+    try{
     
     const user = await this.prisma.users.findUnique({
       where: {
@@ -110,6 +127,8 @@ export class ProfileService {
       },
     });
 
+    this.logger.log('Updated profile data successfully');
+
     return {
       message: 'Profile updated successfully',
 
@@ -126,5 +145,15 @@ export class ProfileService {
         is_active: updatedUser.is_active,
       },
     };
+  }
+
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+    }
+
+    this.logger.error( 'Failed to update profile data', error instanceof Error ? error.stack : String(error));
+    throw new InternalServerErrorException( 'Failed to update profile data', );
+  }
   }
 }

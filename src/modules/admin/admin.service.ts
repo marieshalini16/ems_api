@@ -1,12 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, InternalServerErrorException, Logger, NotFoundException } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 
 @Injectable()
 export class AdminService {
+
+  private readonly logger = new Logger(AdminService.name);
+
   constructor(private readonly prisma: PrismaService) {}
 
   async getDashboard() {
+  try {
 
     const [totalEmployees, totalDepartments, totalTasks, activeEmployees] = 
     await Promise.all([
@@ -146,6 +150,8 @@ export class AdminService {
           createdAt: employee.created_at,
         };
       });
+  
+    this.logger.log('Admin dashboard data fetched successfully');
 
     return {
       totalEmployees,
@@ -158,4 +164,15 @@ export class AdminService {
       taskStatistics,
     };
   }
+  
+catch(error: unknown){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+           throw error;
+    }
+   this.logger.error( 'Failed to fetch admin dashboard data', error instanceof Error ? error.stack : String(error));
+   throw new InternalServerErrorException( 'Failed to fetch dashboard data', );
+}
+
+}
+
 }

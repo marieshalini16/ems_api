@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, InternalServerErrorException, Logger, } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 
 import { PrismaService } from '../prisma/prisma.service.js';
@@ -8,6 +8,9 @@ import { EmployeeQueryDto } from './dto/employee-query.dto.js';
 
 @Injectable()
 export class EmployeesService {
+
+  private readonly logger = new Logger(EmployeesService.name);
+
   constructor(
     private readonly prisma: PrismaService,
   ) {}
@@ -15,6 +18,8 @@ export class EmployeesService {
    //CREATE EMPLOYEE
 
   async create(dto: CreateEmployeeDto) {
+
+  try{
 
     // Check email
 
@@ -87,15 +92,28 @@ export class EmployeesService {
 
     const { password, ...employeeResponse } = employee;
 
+    this.logger.log('Employee created successfully');
+
     return {
       message: 'Employee created successfully',
       employee: employeeResponse,
     };
   }
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( 'Failed to create employee', error instanceof Error ? error.stack : String(error) );
+    throw new InternalServerErrorException('Failed to create employee');
+
+  }
+}
 
    // GET ALL EMPLOYEES
 
   async findAll(query: EmployeeQueryDto) {
+    try{
 
     const { search, dept_id, is_active, page = 1, limit = 5 } = query;
     const skip = (page - 1) * limit;
@@ -221,7 +239,9 @@ export class EmployeesService {
 
         department: departmentMap.get(employee.dept_id) ?? null,
       }));
-
+      
+    this.logger.log('Fetched employees successfully');
+    
     return {
       data: employeesWithDepartment,
 
@@ -232,11 +252,22 @@ export class EmployeesService {
         totalPages: Math.ceil(total / limit),
       },
     };
+    }
+    catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( 'Failed to fetch employees', error instanceof Error ? error.stack : String(error) );
+    throw new InternalServerErrorException('Failed to fetch employees');
+
+    }
   }
 
   // GET EMPLOYEE BY ID
 
   async findOne(id: number) {
+    try{
     const employee = await this.prisma.users.findUnique({
         where: {
           id,
@@ -282,15 +313,26 @@ export class EmployeesService {
         },
       });
 
+    this.logger.log(`Fetched employee id=${id} successfully`);
+
     return {
       ...employee,
       department,
     };
   }
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+    this.logger.error( `Failed to fetch employee id=${id}: ${(error as Error).message}`, (error as Error).stack, );
+    throw new InternalServerErrorException('Failed to fetch employee');
+  }
+  }
 
   // UPDATE EMPLOYEE
 
   async update(id: number,dto: UpdateEmployeeDto) {
+    try{
     const employee = await this.prisma.users.findUnique({
         where: {
           id,
@@ -394,15 +436,27 @@ export class EmployeesService {
         },
         });
 
+    this.logger.log(`Updated employee id=${id} successfully`);
+
     return {
       message: 'Employee updated successfully',
       employee: updatedEmployee,
     };
   }
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( `Failed to update employee id=${id}: ${(error as Error).message}`, (error as Error).stack);
+    throw new InternalServerErrorException('Failed to update employee');
+  }
+  }
 
   // UPDATE EMPLOYEE STATUS
 
   async updateStatus(id: number,is_active: number) {
+    try{
     const employee = await this.prisma.users.findUnique({
         where: {
           id,
@@ -436,6 +490,8 @@ export class EmployeesService {
         },
       });
 
+    this.logger.log(`Updated employee id=${id} status successfully`);
+
     return {
       message:
         is_active === 1
@@ -444,6 +500,15 @@ export class EmployeesService {
 
       employee: updatedEmployee,
     };
+  }
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( `Failed to update employee status id=${id}: ${(error as Error).message}`, (error as Error).stack);
+    throw new InternalServerErrorException('Failed to update employee status');    
+  }
   }
   
 }

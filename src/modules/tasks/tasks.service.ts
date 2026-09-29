@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, Logger, InternalServerErrorException } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 
@@ -9,14 +9,16 @@ import { UpdateTaskStatusDto } from './dto/update-task-status.dto.js';
 
 @Injectable()
 export class TasksService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) {}
+
+  private readonly logger = new Logger(TasksService.name);
+
+  constructor( private readonly prisma: PrismaService, ) {}
 
   // CREATE TASK
 
   async create( dto: CreateTaskDto, createdBy: number,) {
-    
+
+    try{    
     // Check assigned employee
     const employee = await this.prisma.users.findUnique({
         where: {
@@ -86,15 +88,28 @@ export class TasksService {
         },
       });
 
+    this.logger.log('Task created successfully');
+
     return {
       message: 'Task created successfully',
       task,
     };
   }
+  catch(error){
+     if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( 'Failed to create tasks', error instanceof Error ? error.stack : String(error) );
+    throw new InternalServerErrorException('Failed to create tasks');
+  }
+  }
 
   // GET ALL TASKS
 
   async findAll(query: TaskQueryDto) {
+    
+    try{
 
     const { search, priority_id, status_id, assign_to, page = 1, limit = 5} = query;
     const skip = (page - 1) * limit;
@@ -324,6 +339,8 @@ export class TasksService {
         status: statusMap.get(task.status_id) ?? null,
       }));
 
+    this.logger.log('Fetched the tasks successfully');
+
     return {
       data: tasksWithDetails,
 
@@ -337,10 +354,21 @@ export class TasksService {
       },
     };
   }
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( 'Failed to fetch tasks', error instanceof Error ? error.stack : String(error) );
+    throw new InternalServerErrorException('Failed to fetch tasks');
+  }
+  }
 
   // GET TASK BY ID
 
   async findOne(id: number) {
+    try{
+
     const task = await this.prisma.tasks.findUnique({
         where: {
           id,
@@ -391,6 +419,8 @@ export class TasksService {
       }),
     ]);
 
+    this.logger.log(`Fetched task id=${id} successfully`);
+
     return {
       ...task,
       assigned_employee: assignedEmployee,
@@ -399,10 +429,19 @@ export class TasksService {
       status,
     };
   }
+    catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+    this.logger.error( `Failed to fetch task id=${id}: ${(error as Error).message}`, (error as Error).stack, );
+    throw new InternalServerErrorException('Failed to fetch task');
+  }
+  }
 
   // UPDATE TASK
 
   async update(id: number, dto: UpdateTaskDto) {
+    try{
    
     const task = await this.prisma.tasks.findUnique({
         where: {
@@ -492,15 +531,28 @@ export class TasksService {
         data: updateData,
       });
 
+    this.logger.log(`Updated task id=${id} successfully`);
+
     return {
       message: 'Task updated successfully',
       task: updatedTask,
     };
   }
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( `Failed to update task id=${id}: ${(error as Error).message}`, (error as Error).stack);
+    throw new InternalServerErrorException('Failed to update task');
+  }
+  }
 
   // UPDATE STATUS
 
   async updateStatus( id: number, dto: UpdateTaskStatusDto,) {
+
+    try{
    
     const task = await this.prisma.tasks.findUnique({
         where: {
@@ -532,6 +584,8 @@ export class TasksService {
         },
       });
 
+    this.logger.log(`Updated task id=${id} status successfully`);
+
     return {
       message:
         'Task status updated successfully',
@@ -540,10 +594,20 @@ export class TasksService {
     };
   }
 
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( `Failed to update task status id=${id}: ${(error as Error).message}`, (error as Error).stack);
+    throw new InternalServerErrorException('Failed to update task status');    
+  }
+  }
+
   // DEACTIVATE TASK
 
   async remove(id: number) {
-    
+    try{
     const task = await this.prisma.tasks.findUnique({
         where: {
           id,
@@ -564,14 +628,28 @@ export class TasksService {
       },
     });
 
+    this.logger.log(`Deactivated task id=${id} successfully`);
+
     return {
       message: 'Task deactivated successfully',
     };
+  }
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( `Failed to remove task id=${id}: ${(error as Error).message}`, (error as Error).stack);
+    throw new InternalServerErrorException('Failed to remove task');    
+  }
   }
 
   // GET ACTIVE PRIORITIES
 
   async getPriorities() {
+    try{
+
+    this.logger.log('Fetched priorities data successfully');
     
     return this.prisma.priority.findMany({
       where: {
@@ -583,10 +661,22 @@ export class TasksService {
       },
     });
   }
+  catch(error){
+     if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( 'Failed to fetch priorities', error instanceof Error ? error.stack : String(error) );
+    throw new InternalServerErrorException('Failed to fetch priorities');
+  }
+  }
 
   // GET ACTIVE STATUSES
 
   async getStatuses() {
+    try{
+
+    this.logger.log('Fetched statuses data successfully');
   
     return this.prisma.status.findMany({
       where: {
@@ -597,5 +687,14 @@ export class TasksService {
         id: 'asc',
       },
     });
+  }
+  catch(error){
+     if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( 'Failed to fetch statuses', error instanceof Error ? error.stack : String(error) );
+    throw new InternalServerErrorException('Failed to fetch statuses');
+  }
   }
 }

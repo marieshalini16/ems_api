@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException, Logger, InternalServerErrorException } from '@nestjs/common';
 
 import { PrismaService } from '../prisma/prisma.service.js';
 import { CreateDepartmentDto } from './dto/create-department.dto.js';
@@ -8,11 +8,13 @@ import { DepartmentQueryDto } from './dto/department-query.dto.js'
 
 @Injectable()
 export class DepartmentsService {
+  private readonly logger = new Logger(DepartmentsService.name);
   constructor( private readonly prisma: PrismaService ) {}
 
   // Create Department
 
   async create(dto: CreateDepartmentDto) {
+    try{
     const existingDepartment = await this.prisma.department.findUnique({
         where: {
           dept_name: dto.dept_name,
@@ -23,6 +25,8 @@ export class DepartmentsService {
       throw new ConflictException( 'Department already exists' );
     }
 
+  this.logger.log('Department created successfully');
+
     return this.prisma.department.create({
       data: {
         dept_name: dto.dept_name,
@@ -30,10 +34,21 @@ export class DepartmentsService {
       },
     });
   }
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( 'Failed to create department', error instanceof Error ? error.stack : String(error) );
+    throw new InternalServerErrorException('Failed to create department');
+
+  }
+  }
 
   // Get All Departments
 
   async findAll(query: DepartmentQueryDto) {
+    try{
 
     const { search, is_active, page = 1, limit = 5 } = query;
     const skip = (page - 1) * limit;
@@ -102,6 +117,8 @@ export class DepartmentsService {
           countMap.get(department.id) ?? 0,
       }));
 
+    this.logger.log('Department fetched successfully');
+
     return {
       data: departmentsWithCount,
       total,
@@ -110,10 +127,20 @@ export class DepartmentsService {
       totalPages: Math.ceil(total / limit),
     };
   }
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( 'Failed to fetch department', error instanceof Error ? error.stack : String(error) );
+    throw new InternalServerErrorException('Failed to fetch department');
+  }
+  }
 
   // Get One Department
 
   async findOne(id: number) {
+    try{
     const department = await this.prisma.department.findUnique({
         where: {
           id,
@@ -129,17 +156,29 @@ export class DepartmentsService {
           dept_id: id,
         },
       });
+    
+    this.logger.log(`Department id=${id} fetched successfully`);
 
     return {
       ...department,
       employee_count: employeeCount,
     };
   }
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+    this.logger.error( `Failed to fetch department id=${id}: ${(error as Error).message}`, (error as Error).stack, );
+      
+    throw new InternalServerErrorException('Failed to fetch department');
+  }
+  }
 
   // Update Department
 
   async update(id: number, dto: UpdateDepartmentDto ) {
 
+  try{
     const department = await this.prisma.department.findUnique({
         where: {
           id,
@@ -166,6 +205,8 @@ export class DepartmentsService {
       }
     }
 
+    this.logger.log(`Department id=${id} updated successfully`);
+
     return this.prisma.department.update({
       where: {
         id,
@@ -173,10 +214,21 @@ export class DepartmentsService {
       data: dto,
     });
   }
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+    this.logger.error( `Failed to update department id=${id}: ${(error as Error).message}`, (error as Error).stack, );
+      
+    throw new InternalServerErrorException('Failed to update department');   
+  }
+  }
 
   // Update Status
 
   async updateStatus( id: number, dto: UpdateDepartmentStatusDto ) {
+    
+    try{
 
     const department = await this.prisma.department.findUnique({
         where: {
@@ -188,6 +240,8 @@ export class DepartmentsService {
       throw new NotFoundException( 'Department not found' );
     }
 
+    this.logger.log(`Department id=${id} status updated successfully`);
+
     return this.prisma.department.update({
       where: {
         id,
@@ -196,6 +250,15 @@ export class DepartmentsService {
         is_active: dto.is_active,
       },
     });
+  }
+  catch(error){
+    if (error instanceof ConflictException || error instanceof NotFoundException) {
+        throw error;
+      }
+
+    this.logger.error( `Failed to update department status id=${id}: ${(error as Error).message}`, (error as Error).stack);
+    throw new InternalServerErrorException('Failed to update department status'); 
+  }
   }
   
 }
